@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Slotio" parent="Theme.Design.Light.NoActionBar" />
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Slotio" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+    
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/xanhNgocLucBao</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/icon</item>
+
+        <item name="postSplashScreenTheme">@style/Theme.Slotio</item>
+    </style>
+</resources>
