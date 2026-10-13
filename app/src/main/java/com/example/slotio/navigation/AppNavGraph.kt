@@ -20,7 +20,7 @@ fun AppNavGraph() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = Routes.Home
+        startDestination = Routes.Login
     ) {
         // Login
         composable(Routes.Login) {

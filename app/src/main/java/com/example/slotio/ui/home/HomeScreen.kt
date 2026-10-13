@@ -56,10 +56,12 @@ import com.example.slotio.R
 import com.example.slotio.components.SportItem
 import com.example.slotio.components.VenueCard
 import com.example.slotio.data.model.Sport
+import com.example.slotio.data.model.UserSession
 import com.example.slotio.theme.xanhNgocLucBao
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +119,7 @@ fun HomeScreenContent(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(text = currentDateStr, color = Color.White)
-                            Text(text = "Truong Quang Viet Hoang", color = Color.White)
+                            Text(text = UserSession.userName.ifEmpty {"Khach"}, color = Color.White)
                         }
 
                         IconButton(

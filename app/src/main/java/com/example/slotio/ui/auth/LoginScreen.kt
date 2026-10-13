@@ -37,17 +37,45 @@ import com.example.slotio.theme.xanhNgocLucBao
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun LoginScreen(
     onLoginSuccess: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    var inputPhone by remember { mutableStateOf("") }
+
+    val uiState by authViewModel.uiState.collectAsState()
+    LaunchedEffect(uiState.isSuccess) {
+        if(uiState.isSuccess) onLoginSuccess()
+    }
+    LoginScreenContent(
+        uiState = uiState,
+        onNavigateToRegister = onNavigateToRegister,
+        onLoginClick = { email, pass ->
+            authViewModel.login(email = email, password = pass)
+        }
+    )
+}
+
+@Composable
+fun LoginScreenContent(
+    uiState: AuthUiState,
+    onNavigateToRegister: () -> Unit,
+    onLoginClick: (String, String) -> Unit
+) {
+    var inputEmail by remember { mutableStateOf("") }
     var inputPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+
+
     Scaffold(
         containerColor = xanhNgocLucBao
     ) { innerPadding ->
@@ -90,31 +118,33 @@ fun LoginScreen(
 
                     Spacer(Modifier.height(15.dp))
                     Text(
-                        text = "So dien thoai",
+                        text = "Email",
                         fontSize = 15.sp
                     )
                     OutlinedTextField(
-                        value = inputPhone,
-                        onValueChange = {inputPhone = it},
-                        placeholder = { Text("Nhap so dien thoai") },
+                        value = inputEmail,
+                        onValueChange = {inputEmail = it},
+                        placeholder = { Text("Nhap email") },
                         modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(Modifier.height(15.dp))
                     Text(
                         text = "Mat khau",
-                        fontSize = 15.sp
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
                     OutlinedTextField(
                         value = inputPassword,
                         onValueChange = {inputPassword = it},
                         placeholder = { Text("Nhap mat khau") },
                         modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                         visualTransformation = if(passwordVisible)
                             VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             val image = if(passwordVisible) Icons.Filled.Visibility
-                                else Icons.Filled.VisibilityOff
+                            else Icons.Filled.VisibilityOff
                             val des = if(passwordVisible) "An mat khau" else "Hien mat khau"
                             IconButton(
                                 onClick = { passwordVisible = !passwordVisible }
@@ -126,24 +156,40 @@ fun LoginScreen(
                         }
                     )
 
-                    Spacer(Modifier.height(15.dp))
-
-                    ElevatedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            if(inputPhone == "0336983682" && inputPassword == "123456")
-                                onLoginSuccess()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = xanhNgocLucBao
-                        )
-                    ) {
+                    uiState.errorMessage?.let { error ->
+                        Spacer(Modifier.height(8.dp))
                         Text(
-                            text = "Dang nhap",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            text = error,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp,
+                            textAlign = TextAlign.Center
                         )
+                    }
+                    Spacer(Modifier.height(20.dp))
+
+                    if(uiState.isLoading) {
+                        Box(Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = xanhNgocLucBao)
+                        }
+                    }else {
+                        ElevatedButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            onClick = {
+                                if(inputEmail.isNotBlank() && inputPassword.isNotBlank())
+                                    onLoginClick(inputEmail.trim(), inputPassword.trim())
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = xanhNgocLucBao
+                            )
+                        ) {
+                            Text(
+                                text = "Dang nhap",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
                     }
 
                     Row(
@@ -163,6 +209,7 @@ fun LoginScreen(
                         }
                     }
                 }
+
             }
         }
     }
@@ -172,109 +219,11 @@ fun LoginScreen(
 @Composable
 fun LoginScreenPreview(
 ) {
-    var inputPhone by remember { mutableStateOf("") }
-    var inputPassword by remember { mutableStateOf("") }
-    Scaffold(
-        containerColor = xanhNgocLucBao
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            Card(
-                modifier = Modifier.padding(25.dp).padding(top = 150.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White
-                ),
-                elevation = CardDefaults.cardElevation(
-                    15.dp
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 10.dp),
-                        text = "SLOTIO APP",
-                        color = xanhNgocLucBao,
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 30.sp,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(Modifier.height(5.dp))
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = "Phần mềm đặt lịch sân thể thao trực tuyến",
-                        fontSize = 15.sp,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(Modifier.height(15.dp))
-                    Text(
-                        text = "So dien thoai",
-                        fontSize = 15.sp
-                    )
-                    OutlinedTextField(
-                        value = inputPhone,
-                        onValueChange = {inputPhone = it},
-                        placeholder = { Text("Nhap so dien thoai") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(Modifier.height(15.dp))
-                    Text(
-                        text = "Mat khau",
-                        fontSize = 15.sp
-                    )
-                    OutlinedTextField(
-                        value = inputPassword,
-                        onValueChange = {inputPassword = it},
-                        placeholder = { Text("Nhap mat khau") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(Modifier.height(15.dp))
-
-                    ElevatedButton(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {},
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = xanhNgocLucBao
-                        )
-                    ) {
-                        Text(
-                            text = "Dang nhap",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Ban chua co tai khoan ?"
-                        )
-                        TextButton(
-                            onClick = {}
-                        ) {
-                            Text(
-                                text = "Dang ky"
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
+    LoginScreenContent(
+        uiState = AuthUiState(),
+        onNavigateToRegister = {},
+        onLoginClick = {_, _ -> }
+    )
 }
 
 
