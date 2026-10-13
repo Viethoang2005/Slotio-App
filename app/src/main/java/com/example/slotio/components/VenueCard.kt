@@ -24,10 +24,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,8 +49,9 @@ fun VenueCard(
     address: String,
     phone: String,
     imageUrl: String,
+    isFavorite: Boolean,
+    onFavoriteClick: () -> Unit
 ) {
-    var isFavorite by remember { mutableStateOf(false) }
     Card(
         elevation = CardDefaults.cardElevation(15.dp),
         colors = CardDefaults.cardColors(
@@ -74,7 +71,7 @@ fun VenueCard(
                     contentScale = ContentScale.Crop
                 )
                 IconButton(
-                    onClick = { isFavorite = !isFavorite },
+                    onClick = onFavoriteClick,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(16.dp)
@@ -148,7 +145,9 @@ fun VenueCardPreview() {
         description = "Sân đạt chuẩn quốc tế, thoáng mát, có máy lạnh.",
         address = "Số 12, Đường Lê Duẩn, Quận 1, TP.HCM",
         phone = "0912 345 678",
-        imageUrl = "https://images.unsplash.com/photo-1626231752423-15c63d8d8a4d?q=80&w=1000&auto=format&fit=crop" // Link ảnh mẫu
+        imageUrl = "https://images.unsplash.com/photo-1626231752423-15c63d8d8a4d?q=80&w=1000&auto=format&fit=crop",
+        isFavorite = false,
+        onFavoriteClick = {}
     )
 }
 

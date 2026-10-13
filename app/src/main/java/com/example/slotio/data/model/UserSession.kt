@@ -4,4 +4,5 @@ object UserSession {
     var userId: Int = -1
     var userName: String = ""
     var userEmail: String = ""
+    var token: String = ""
 }

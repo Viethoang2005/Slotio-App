@@ -152,11 +152,13 @@ fun SearchScreenContent(
                             elevation = CardDefaults.cardElevation(10.dp)
                         ) {
                             VenueCard(
-                                venue.name,
-                                venue.description,
-                                venue.address,
-                                venue.phone,
-                                venue.imageUrl
+                                name = venue.name,
+                                description = venue.description,
+                                address = venue.address,
+                                phone = venue.phone,
+                                imageUrl = venue.imageUrl,
+                                isFavorite = venue.isFavorite,
+                                onFavoriteClick = {}
                             )
                         }
                     }
@@ -173,12 +175,13 @@ fun SearchScreenPreview() {
         isLoading = false,
         venues = listOf(
             Venue(
-                1,
-                "Apex Badminton",
-                "San cau long hien dai",
-                "175 Tay Son, Kim Lien",
-                "0987654321",
-                ""
+                id = 1,
+                name = "Apex Badminton",
+                description = "San cau long hien dai",
+                address = "175 Tay Son, Kim Lien",
+                phone = "0987654321",
+                imageUrl = "",
+                isFavorite = false
             )
         )
     )

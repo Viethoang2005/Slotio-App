@@ -40,9 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,20 +69,30 @@ fun HomeScreen(
     val viewModel: HomeViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsState()
 
-    HomeScreenContent(uiState = uiState,
+    HomeScreenContent(
+        uiState = uiState,
         onNavigateToSearchScreen = onNavigateToSearchScreen,
         onSportClick = { sportId ->
             viewModel.selectSport(sportId)
-        })
+        },
+        onFavoriteHeaderClick = {
+            viewModel.toggleFavoriteFilter()
+        },
+        onFavoriteVenueClick = { venueId, isFav ->
+            viewModel.toggleFavorite(venueId = venueId, isFav)
+
+        }
+    )
 }
 
 @Composable
 fun HomeScreenContent(
     uiState: HomeUiState,
     onNavigateToSearchScreen: () -> Unit,
-    onSportClick: (Int) -> Unit
+    onSportClick: (Int) -> Unit,
+    onFavoriteHeaderClick: () -> Unit,
+    onFavoriteVenueClick: (Int, Boolean) -> Unit
 ) {
-    var favoriteState by remember { mutableStateOf(false) }
     val currentDateStr = remember { getCurrentDate() }
     Scaffold(
         topBar = {
@@ -119,7 +127,10 @@ fun HomeScreenContent(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(text = currentDateStr, color = Color.White)
-                            Text(text = UserSession.userName.ifEmpty {"Khach"}, color = Color.White)
+                            Text(
+                                text = UserSession.userName.ifEmpty { "Khach" },
+                                color = Color.White
+                            )
                         }
 
                         IconButton(
@@ -144,7 +155,8 @@ fun HomeScreenContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Surface(
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
                                 .height(56.dp)
                                 .weight(1f)
                                 .clickable {
@@ -175,12 +187,12 @@ fun HomeScreenContent(
                             elevation = CardDefaults.cardElevation(4.dp)
                         ) {
                             IconButton(
-                                onClick = { favoriteState = !favoriteState }
+                                onClick = onFavoriteHeaderClick
                             ) {
                                 Icon(
-                                    imageVector = if (!favoriteState) Icons.Outlined.FavoriteBorder else Icons.Filled.Favorite,
+                                    imageVector = if (uiState.isFavoriteFilterActive) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                                     contentDescription = "Favorite",
-                                    tint = if (favoriteState) Color.Red else Color.Gray
+                                    tint = if (uiState.isFavoriteFilterActive) Color.Red else Color.Gray
                                 )
                             }
                         }
@@ -206,7 +218,7 @@ fun HomeScreenContent(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        items(uiState.sports, key = {it.id}) { sport ->
+                        items(uiState.sports, key = { it.id }) { sport ->
                             SportItem(
                                 sport = sport,
                                 selected = uiState.selectedSportId == sport.id,
@@ -217,7 +229,9 @@ fun HomeScreenContent(
                     }
                 }
 
-                itemsIndexed(uiState.venues) { _, venue ->
+                itemsIndexed(uiState.displayedVenues,
+                    key = {_, venue -> venue.id}
+                ) { _, venue ->
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -225,17 +239,28 @@ fun HomeScreenContent(
                         elevation = CardDefaults.cardElevation(2.dp)
                     ) {
                         VenueCard(
-                            venue.name,
-                            venue.description,
-                            venue.address,
-                            venue.phone,
-                            venue.imageUrl
+                            name = venue.name,
+                            description = venue.description,
+                            address = venue.address,
+                            phone = venue.phone,
+                            imageUrl = venue.imageUrl,
+                            isFavorite = venue.isFavorite,
+                            onFavoriteClick = {
+                                onFavoriteVenueClick(venue.id, venue.isFavorite)
+                            }
                         )
                     }
                 }
 
             }
-            if(uiState.isLoading) {
+            if(uiState.isFavoriteFilterActive && uiState.displayedVenues.isEmpty()) {
+                Text(
+                    text = "Chưa có sân yêu thích",
+                    color = Color.Gray,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -253,27 +278,41 @@ fun HomeScreenContent(
 
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HomeScreenPreview() {
     val sampleState = HomeUiState(
         sports = listOf(
-            Sport(1, "badminton", imageUrl = "https://res.cloudinary.com/cmatwqd9/image/upload/v1790688418/badminton_image.jpg"),
-            Sport(2, "tennis", imageUrl = "https://res.cloudinary.com/cmatwqd9/image/upload/v1790688418/tennis_image.jpg")
+            Sport(
+                1,
+                "badminton",
+                imageUrl = "https://res.cloudinary.com/cmatwqd9/image/upload/v1790688418/badminton_image.jpg"
+            ),
+            Sport(
+                2,
+                "tennis",
+                imageUrl = "https://res.cloudinary.com/cmatwqd9/image/upload/v1790688418/tennis_image.jpg"
+            )
         ),
         isLoading = false
     )
-    HomeScreenContent(uiState = sampleState, onNavigateToSearchScreen = {}, onSportClick = {})
+    HomeScreenContent(
+        uiState = sampleState,
+        onNavigateToSearchScreen = {},
+        onSportClick = {},
+        onFavoriteHeaderClick = {},
+        onFavoriteVenueClick = { _, _ -> })
 }
 
-fun getCurrentDate() : String {
+fun getCurrentDate(): String {
     val vietnameseLocate = Locale.forLanguageTag("vi-VN")
 
     val sdf = SimpleDateFormat("EEEE, dd/MM/yyyy", vietnameseLocate)
     val formatted = sdf.format(Date())
 
     return formatted.replaceFirstChar {
-        if(it.isLowerCase())
+        if (it.isLowerCase())
             it.titlecase(vietnameseLocate)
         else
             it.toString()

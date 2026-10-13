@@ -10,5 +10,9 @@ data class Venue(
     val address: String,
     val phone: String,
     @SerializedName("image_url")
-    val imageUrl: String
+    val imageUrl: String,
+    @SerializedName("sport_id")
+    val sportId: Int? = null,
+    val isFavorite: Boolean = false
 )
+

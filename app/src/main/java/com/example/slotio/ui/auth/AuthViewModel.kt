@@ -36,6 +36,10 @@ class AuthViewModel @Inject constructor(
                         UserSession.userName = user.name
                         UserSession.userEmail = user.email
                     }
+                    val tokenStr = (response.token ?: response.accessToken ?: "").removePrefix("Bearer ").trim()
+                    if (tokenStr.isNotBlank()) {
+                        UserSession.token = tokenStr
+                    }
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 }else {
                     _uiState.update { it.copy(isLoading = false, errorMessage = response.message) }
